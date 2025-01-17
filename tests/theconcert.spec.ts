@@ -1,14 +1,14 @@
 import { test, expect, Page, Locator } from "@playwright/test";
 
 const url1 = "https://www.theconcert.com/concert/3689";
-const url2 = "https://www.theconcert.com/concert/3824";
+const url2 = "https://www.theconcert.com/concert/3755";
 const zone_prebook = "V2";
-const zone = "SH :";
+const zone = "E1H :";
 const ticketAmount = "4";
 const ticketPrice_prebook = "3,620";
-const ticketPrice = "2,500";
+const ticketPrice = "4,000";
 const isSetBookingTime = false;
-const bookingtTime = "10:59:59";
+const bookingtTime = "09:59:59";
 
 test("booking ticket", async ({ page }) => {
   await signin(page, url1);
@@ -57,11 +57,6 @@ async function signinByEmail({ page }) {
 }
 
 async function validateCaptcha({ page }) {
-  // await page
-  //   .locator('iframe[name="a-3bsgt6oo9pjr"]')
-  //   .contentFrame()
-  //   .getByLabel("I'm not a robot")
-  //   .click({ force: true });
   await page.pause();
 }
 
@@ -87,7 +82,7 @@ async function clickingBuyButton(
           .getByRole("button", { name: "ซื้อบัตร" })
           .nth(1)
           .click({ force: true });
-        await page.getByText(`฿${ticketPrice}`).first().click();
+        // await page.getByText(`฿${ticketPrice}`).first().click();
         break;
       }
 
@@ -98,7 +93,7 @@ async function clickingBuyButton(
       .getByRole("button", { name: "ซื้อบัตร" })
       .nth(1)
       .click({ force: true });
-    await page.getByText(`฿${ticketPrice}`).first().click();
+    // await page.getByText(`฿${ticketPrice}`).first().click();
   }
 }
 
@@ -109,7 +104,6 @@ async function selectZoneAndSeat(
 ) {
   const regex = new RegExp(`${zone}`, "i");
   await page.locator("span.zone-name", { hasText: regex }).first().click();
-  await page.pause();
 
   const seatSelectedElement = await page.getByText(
     `ราคารวม x${ticketAmount} ใบ`

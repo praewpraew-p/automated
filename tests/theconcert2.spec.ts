@@ -1,14 +1,14 @@
 import { test, expect, Page, Locator } from "@playwright/test";
 
 const url1 = "https://www.theconcert.com/concert/3689";
-const url2 = "https://www.theconcert.com/concert/3824";
+const url2 = "https://www.theconcert.com/concert/3755";
 const zone_prebook = "V2";
-const zone = "SH :";
+const zone = "E2J :";
 const ticketAmount = "4";
 const ticketPrice_prebook = "3,620";
 const ticketPrice = "2,500";
 const isSetBookingTime = false;
-const bookingtTime = "10:59:59";
+const bookingtTime = "09:59:59";
 
 test("booking ticket", async ({ page }) => {
   await signin(page, url1);
@@ -21,10 +21,10 @@ test("booking ticket", async ({ page }) => {
   await selectZoneAndSeat(page, zone_prebook, ticketAmount);
   await page.waitForTimeout(3000);
 
-  // await page.goto(url2);
-  // await clickingBuyButton(page, isSetBookingTime, bookingtTime, ticketPrice);
-  // await selectZoneAndSeat(page, zone, ticketAmount);
-  // await managePayment({ page });
+  await page.goto(url2);
+  await clickingBuyButton(page, isSetBookingTime, bookingtTime, ticketPrice);
+  await selectZoneAndSeat(page, zone, ticketAmount);
+  await managePayment({ page });
 });
 
 async function signin(page: Page, url: string) {
@@ -104,7 +104,6 @@ async function selectZoneAndSeat(
 ) {
   const regex = new RegExp(`${zone}`, "i");
   await page.locator("span.zone-name", { hasText: regex }).first().click();
-  await page.pause();
 
   const seatSelectedElement = await page.getByText(
     `ราคารวม x${ticketAmount} ใบ`
