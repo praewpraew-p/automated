@@ -1,0 +1,243 @@
+import { test, expect, Page, Locator } from "@playwright/test";
+
+const url1 = "https://www.theconcert.com/concert/3689";
+const url2 = "https://www.theconcert.com/concert/3824";
+const zone_prebook = "V2";
+const zone = "SH :";
+const ticketAmount = "4";
+const ticketPrice_prebook = "3,620";
+const ticketPrice = "2,500";
+const isSetBookingTime = false;
+const bookingtTime = "10:59:59";
+
+test("booking ticket", async ({ page }) => {
+  await signin(page, url1);
+  await clickingBuyButton(
+    page,
+    isSetBookingTime,
+    bookingtTime,
+    ticketPrice_prebook
+  );
+  await selectZoneAndSeat(page, zone_prebook, ticketAmount);
+  await page.waitForTimeout(3000);
+
+  // await page.goto(url2);
+  // await clickingBuyButton(page, isSetBookingTime, bookingtTime, ticketPrice);
+  // await selectZoneAndSeat(page, zone, ticketAmount);
+  // await managePayment({ page });
+});
+
+async function signin(page: Page, url: string) {
+  await page.goto(url);
+  await page.getByRole("button", { name: "ยอมรับ" }).click();
+  await signinByPhone({ page });
+}
+
+async function signinByPhone({ page }) {
+  await page.getByText("เข้าสู่ระบบหรือลงทะเบียน").click({ force: true });
+  await page
+    .getByRole("textbox", { name: "เบอร์โทรศัพท์มือถือ" })
+    .fill("959267625");
+  await page.getByPlaceholder("รหัสผ่าน").fill("p0837968799");
+  await validateCaptcha({ page });
+  await page
+    .getByRole("button", { name: "เข้าสู่ระบบ" })
+    .click({ force: true });
+}
+
+async function signinByEmail({ page }) {
+  await page.getByText("เข้าสู่ระบบหรือลงทะเบียน").click({ force: true });
+  await page.getByRole("link", { name: "อีเมล" }).click();
+  await page.getByPlaceholder("อีเมล").fill("aris.pw10@gmail.com");
+  await page.getByPlaceholder("รหัสผ่าน").fill("p0837968799");
+  await validateCaptcha({ page });
+  await page
+    .getByRole("button", { name: "เข้าสู่ระบบ" })
+    .click({ force: true });
+}
+
+async function validateCaptcha({ page }) {
+  // await page
+  //   .locator('iframe[name="a-3bsgt6oo9pjr"]')
+  //   .contentFrame()
+  //   .getByLabel("I'm not a robot")
+  //   .click({ force: true });
+  await page.pause();
+}
+
+async function clickingBuyButton(
+  page: Page,
+  isSetBookingTime: boolean,
+  time: string,
+  ticketPrice: string
+) {
+  const dialog = page.getByRole("button", { name: "เข้าสู่ระบบ" });
+  await expect(dialog).not.toBeVisible();
+
+  if (isSetBookingTime) {
+    while (true) {
+      const now = new Date();
+      const currentTime = `${now.getHours().toString().padStart(2, "0")}:${now
+        .getMinutes()
+        .toString()
+        .padStart(2, "0")}:${now.getSeconds().toString().padStart(2, "0")}`;
+
+      if (currentTime === time) {
+        await page
+          .getByRole("button", { name: "ซื้อบัตร" })
+          .nth(1)
+          .click({ force: true });
+        await page.getByText(`฿${ticketPrice}`).first().click();
+        break;
+      }
+
+      await page.waitForTimeout(500);
+    }
+  } else {
+    await page
+      .getByRole("button", { name: "ซื้อบัตร" })
+      .nth(1)
+      .click({ force: true });
+    await page.getByText(`฿${ticketPrice}`).first().click();
+  }
+}
+
+async function selectZoneAndSeat(
+  page: Page,
+  zone: string,
+  ticketAmount: string
+) {
+  const regex = new RegExp(`${zone}`, "i");
+  await page.locator("span.zone-name", { hasText: regex }).first().click();
+  await page.pause();
+
+  const seatSelectedElement = await page.getByText(
+    `ราคารวม x${ticketAmount} ใบ`
+  );
+
+  await selectSeat(page, seatSelectedElement);
+
+  const warningModal = await page.locator(".box-warning");
+  if (await warningModal.isVisible()) {
+    await page
+      .getByRole("dialog", {
+        name: "ยินดีด้วย คุณได้ลงทะเบียนเรียบร้อยแล้ว complete",
+      })
+      .locator("i")
+      .click();
+  }
+
+  await expect(warningModal).not.toBeVisible();
+  await page.getByRole("button", { name: "ซื้อบัตร" }).click();
+}
+
+async function selectSeat(page: Page, seatSelectedElement: Locator) {
+  while (true) {
+    const elements = await page.locator(
+      "text[style*='cursor: pointer'] > tspan[dy*='.']"
+    );
+    const count = await elements.count();
+
+    if (count === 0) {
+      await page.waitForTimeout(500);
+      continue;
+    }
+
+    for (let i = 0; i < count; i++) {
+      const element = page.locator(
+        `text[style*='cursor: pointer'] > tspan[dy*='.'] >> nth=${i}`
+      );
+
+      const elementHandle = await element.elementHandle();
+      if (elementHandle) {
+        const textContent = await element.textContent();
+
+        try {
+          await element.click();
+
+          const warningModal = await page.locator(".box-warning");
+          if (await warningModal.isVisible()) {
+            await page
+              .getByRole("dialog", {
+                name: "ยินดีด้วย คุณได้ลงทะเบียนเรียบร้อยแล้ว complete",
+              })
+              .locator("i")
+              .click();
+          }
+
+          if (await seatSelectedElement.isVisible()) {
+            return;
+          }
+
+          break;
+        } catch (error) {
+          console.error(`Error clicking on element: ${textContent}`, error);
+        }
+      } else {
+        console.log(`Element at index ${i} is no longer attached.`);
+      }
+    }
+  }
+}
+
+async function managePayment({ page }) {
+  await page.locator("text=สรุปรายการสั่งซื้อ").waitFor({ state: "visible" });
+  const ticketProtect = await page
+    .getByText("ต้องการรับ บริการคุ้มครองตั๋วการแสดง")
+    .first();
+  if (ticketProtect.isVisible()) {
+    await page.locator(".checkmark").first().click();
+  }
+  await page.locator("#head_promptpay").click();
+  await page
+    .locator("text=ชำระผ่านช่องทางพร้อมเพย์")
+    .waitFor({ state: "visible" });
+  await page.waitForTimeout(2000);
+  await page
+    .getByRole("button", { name: "ยืนยันชำระเงิน" })
+    .click({ force: true });
+  await page.pause();
+}
+
+// while (true) {
+//   // ต้องเช็คว่าไม่ใช่ dy='32' เพิ่มด้วย
+//   // const elements = await page.locator("text[style*='cursor: pointer']");
+//   const elements = await page.locator(
+//     "text[style*='cursor: pointer'] > tspan[dy*='.']"
+//   );
+//   const count = await elements.count();
+//   const allTexts = await elements.allTextContents();
+//   console.log("allTexts: ", allTexts);
+
+//   await page.pause();
+//   for (let i = 0; i < count; i++) {
+//     // const elementsi1 = await elements.nth(i).textContent();
+//     // console.log("elementsi1: ", elementsi1);
+//     const element = elements.nth(i);
+//     await element.scrollIntoViewIfNeeded();
+//     console.log("element: ", await element.textContent());
+//     await element.click();
+
+//     const warningModal = await page.locator(".box-warning");
+//     if (await warningModal.isVisible()) {
+//       await page
+//         .getByRole("dialog", {
+//           name: "ยินดีด้วย คุณได้ลงทะเบียนเรียบร้อยแล้ว complete",
+//         })
+//         .locator("i")
+//         .click();
+//     }
+
+//     if (await seatSelectedElement.isVisible()) {
+//       break;
+//     }
+//   }
+
+//   await page.waitForTimeout(500);
+//   if (await seatSelectedElement.isVisible()) {
+//     break;
+//   } else {
+//     await page.waitForTimeout(500);
+//     await selectSeat(page, seatSelectedElement);
+//   }
+// }
