@@ -1,23 +1,18 @@
 import { test, expect, Page, Locator } from "@playwright/test";
 
 const url1 = "https://www.theconcert.com/concert/3689";
-const url2 = "https://www.theconcert.com/concert/3755";
+const url2 = "https://www.theconcert.com/concert/3902";
 const zone_prebook = "V2";
-const zone = "E2J :";
+const zone = "A1 :";
 const ticketAmount = "4";
 const ticketPrice_prebook = "3,620";
-const ticketPrice = "2,500";
-const isSetBookingTime = false;
-const bookingtTime = "09:59:59";
+const ticketPrice = "3,019";
+const isSetBookingTime = true;
+const bookingtTime = "09:59:57";
 
 test("booking ticket", async ({ page }) => {
   await signin(page, url1);
-  await clickingBuyButton(
-    page,
-    isSetBookingTime,
-    bookingtTime,
-    ticketPrice_prebook
-  );
+  await clickingBuyButton(page, false, bookingtTime, ticketPrice_prebook);
   await selectZoneAndSeat(page, zone_prebook, ticketAmount);
   await page.waitForTimeout(3000);
 
@@ -30,7 +25,7 @@ test("booking ticket", async ({ page }) => {
 async function signin(page: Page, url: string) {
   await page.goto(url);
   await page.getByRole("button", { name: "ยอมรับ" }).click();
-  await signinByPhone({ page });
+  await signinByEmail({ page });
 }
 
 async function signinByPhone({ page }) {
@@ -48,7 +43,7 @@ async function signinByPhone({ page }) {
 async function signinByEmail({ page }) {
   await page.getByText("เข้าสู่ระบบหรือลงทะเบียน").click({ force: true });
   await page.getByRole("link", { name: "อีเมล" }).click();
-  await page.getByPlaceholder("อีเมล").fill("aris.pw10@gmail.com");
+  await page.getByPlaceholder("อีเมล").fill("pp.forbooking1@gmail.com");
   await page.getByPlaceholder("รหัสผ่าน").fill("p0837968799");
   await validateCaptcha({ page });
   await page
@@ -82,7 +77,7 @@ async function clickingBuyButton(
           .getByRole("button", { name: "ซื้อบัตร" })
           .nth(1)
           .click({ force: true });
-        await page.getByText(`฿${ticketPrice}`).first().click();
+        // await page.getByText(`฿${ticketPrice}`).first().click();
         break;
       }
 
@@ -93,7 +88,7 @@ async function clickingBuyButton(
       .getByRole("button", { name: "ซื้อบัตร" })
       .nth(1)
       .click({ force: true });
-    await page.getByText(`฿${ticketPrice}`).first().click();
+    // await page.getByText(`฿${ticketPrice}`).first().click();
   }
 }
 
@@ -133,7 +128,7 @@ async function selectSeat(page: Page, seatSelectedElement: Locator) {
     const count = await elements.count();
 
     if (count === 0) {
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(300);
       continue;
     }
 

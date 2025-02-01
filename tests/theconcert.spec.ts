@@ -1,43 +1,38 @@
 import { test, expect, Page, Locator } from "@playwright/test";
 
 const url1 = "https://www.theconcert.com/concert/3689";
-const url2 = "https://www.theconcert.com/concert/3755";
+const url2 = "https://www.theconcert.com/concert/3902";
 const zone_prebook = "V2";
-const zone = "E1H :";
+const zone = "A2 :";
 const ticketAmount = "4";
 const ticketPrice_prebook = "3,620";
-const ticketPrice = "4,000";
-const isSetBookingTime = false;
-const bookingtTime = "09:59:59";
+const ticketPrice = "3,019";
+const isSetBookingTime = true;
+const bookingtTime = "09:59:57";
 
 test("booking ticket", async ({ page }) => {
   await signin(page, url1);
-  await clickingBuyButton(
-    page,
-    isSetBookingTime,
-    bookingtTime,
-    ticketPrice_prebook
-  );
+  await clickingBuyButton(page, false, bookingtTime, ticketPrice_prebook);
   await selectZoneAndSeat(page, zone_prebook, ticketAmount);
   await page.waitForTimeout(3000);
 
-  // await page.goto(url2);
-  // await clickingBuyButton(page, isSetBookingTime, bookingtTime, ticketPrice);
-  // await selectZoneAndSeat(page, zone, ticketAmount);
-  // await managePayment({ page });
+  await page.goto(url2);
+  await clickingBuyButton(page, isSetBookingTime, bookingtTime, ticketPrice);
+  await selectZoneAndSeat(page, zone, ticketAmount);
+  await managePayment({ page });
 });
 
 async function signin(page: Page, url: string) {
   await page.goto(url);
   await page.getByRole("button", { name: "ยอมรับ" }).click();
-  await signinByPhone({ page });
+  await signinByEmail({ page });
 }
 
 async function signinByPhone({ page }) {
   await page.getByText("เข้าสู่ระบบหรือลงทะเบียน").click({ force: true });
   await page
     .getByRole("textbox", { name: "เบอร์โทรศัพท์มือถือ" })
-    .fill("959267625");
+    .fill("0959267625");
   await page.getByPlaceholder("รหัสผ่าน").fill("p0837968799");
   await validateCaptcha({ page });
   await page
@@ -48,7 +43,7 @@ async function signinByPhone({ page }) {
 async function signinByEmail({ page }) {
   await page.getByText("เข้าสู่ระบบหรือลงทะเบียน").click({ force: true });
   await page.getByRole("link", { name: "อีเมล" }).click();
-  await page.getByPlaceholder("อีเมล").fill("aris.pw10@gmail.com");
+  await page.getByPlaceholder("อีเมล").fill("be.arisspx@gmail.com");
   await page.getByPlaceholder("รหัสผ่าน").fill("p0837968799");
   await validateCaptcha({ page });
   await page
@@ -133,11 +128,12 @@ async function selectSeat(page: Page, seatSelectedElement: Locator) {
     const count = await elements.count();
 
     if (count === 0) {
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(300);
       continue;
     }
 
-    for (let i = 0; i < count; i++) {
+    // for (let i = count - 1; i >= 0; i--) clicking from back to front
+    for (let i = count - 1; i >= 0; i--) {
       const element = page.locator(
         `text[style*='cursor: pointer'] > tspan[dy*='.'] >> nth=${i}`
       );
@@ -192,46 +188,3 @@ async function managePayment({ page }) {
     .click({ force: true });
   await page.pause();
 }
-
-// while (true) {
-//   // ต้องเช็คว่าไม่ใช่ dy='32' เพิ่มด้วย
-//   // const elements = await page.locator("text[style*='cursor: pointer']");
-//   const elements = await page.locator(
-//     "text[style*='cursor: pointer'] > tspan[dy*='.']"
-//   );
-//   const count = await elements.count();
-//   const allTexts = await elements.allTextContents();
-//   console.log("allTexts: ", allTexts);
-
-//   await page.pause();
-//   for (let i = 0; i < count; i++) {
-//     // const elementsi1 = await elements.nth(i).textContent();
-//     // console.log("elementsi1: ", elementsi1);
-//     const element = elements.nth(i);
-//     await element.scrollIntoViewIfNeeded();
-//     console.log("element: ", await element.textContent());
-//     await element.click();
-
-//     const warningModal = await page.locator(".box-warning");
-//     if (await warningModal.isVisible()) {
-//       await page
-//         .getByRole("dialog", {
-//           name: "ยินดีด้วย คุณได้ลงทะเบียนเรียบร้อยแล้ว complete",
-//         })
-//         .locator("i")
-//         .click();
-//     }
-
-//     if (await seatSelectedElement.isVisible()) {
-//       break;
-//     }
-//   }
-
-//   await page.waitForTimeout(500);
-//   if (await seatSelectedElement.isVisible()) {
-//     break;
-//   } else {
-//     await page.waitForTimeout(500);
-//     await selectSeat(page, seatSelectedElement);
-//   }
-// }
