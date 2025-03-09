@@ -1,8 +1,7 @@
 import test, { expect } from "@playwright/test";
 
-// eventpop.queue-it.net/?c=eventpop&e=77578fort&cid=en-US
 const home_url = "https://www.eventpop.me/";
-const queue_url = "https://queue.eventpop.me/prequeue/th/?id=79097";
+const queue_url = "https://queue.eventpop.me/prequeue/th/?id=80350";
 
 test("queueing", async ({ page }) => {
   await page.goto(home_url);
