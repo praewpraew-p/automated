@@ -1,17 +1,17 @@
 import test, { Page } from "@playwright/test";
 import { getCurrentTime } from "./helper/helper";
 
-const home_url = "https://www.bestwarinticket.com/";
-const login_url = "https://www.bestwarinticket.com/myaccount.php";
+const home_url = "https://www.feelfunfest.com/index_heartkillers.html";
+const login_url = "https://www.feelfunfest.com/myaccount.php";
 const seat_url =
-  "https://www.bestwarinticket.com/Tiffany_Young_HereForYou_BKK/step.php";
-const zone = "G";
+  "https://www.feelfunfest.com/TheHeartKillers_FanMeet_Vietnam/step.php";
+const zone = "CAT2R";
 const time = "";
 
 test("booking", async ({ page }) => {
   await page.goto(login_url);
 
-  await page.locator('input[name="username"]').fill("praew0011");
+  await page.locator('input[name="username"]').fill("praew0010");
   await page.locator('input[name="passwd"]').fill("123456");
   await page.getByRole("button", { name: "LOGIN" }).click();
 
@@ -33,7 +33,7 @@ const bookingProgress = async (page: Page) => {
 const clickOnBuyButton = async (page: Page) => {
   const isSetBookingTime = !!time;
   const clickButton = async () =>
-    await page.getByRole("link", { name: "ซื้อบัตร / Buy Ticket" }).click();
+    await page.getByRole("link", { name: /Buy Ticket/i }).click();
 
   if (isSetBookingTime) {
     while (true) {
@@ -75,12 +75,13 @@ const selectSeat = async (page: Page) => {
 };
 
 const clickOnBookingButton = async (page: Page) => {
-  await page
-    .getByText(
-      "ข้าพเจ้ายอมรับ เงื่อนไขและข้อกำหนด | I Agree To The Terms and Conditions"
-    )
-    .click();
-  await page.getByRole("button", { name: "ไปขั้นตอนถัดไป (CONTINUE)" }).click();
+  await page.evaluate(() => {
+    const checkbox = document.querySelector("input#checkboxG1");
+    if (checkbox instanceof HTMLElement) {
+      checkbox.click();
+    }
+  });
+  await page.locator("input[name='SUBMIT']").click();
 };
 
 const handleDuplicateBooking = async (page: Page) => {
