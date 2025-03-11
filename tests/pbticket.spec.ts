@@ -26,14 +26,17 @@ const bookingProgress = async (page: Page) => {
   await page.waitForTimeout(100);
   await selectZone(page);
   await page.waitForTimeout(250);
-  await selectSeat(page);
+  await selectSeatRightZone(page);
   await clickOnBookingButton(page);
 };
 
 const clickOnBuyButton = async (page: Page) => {
   const isSetBookingTime = !!time;
   const clickButton = async () =>
-    await page.getByRole("link", { name: /Buy Ticket/i }).click();
+    await page
+      .getByRole("link", { name: /Buy Ticket/i })
+      .first()
+      .click();
 
   if (isSetBookingTime) {
     while (true) {
@@ -61,7 +64,7 @@ const selectZone = async (page: Page) => {
   ]);
 };
 
-const selectSeat = async (page: Page) => {
+const selectSeatRightZone = async (page: Page) => {
   const seatLabelHandle = await page.evaluateHandle(() => {
     return [...document.querySelectorAll("input[name='seat[]']")].find(
       (el) => !el.closest("td")?.querySelector("label[aria-pressed='true']")
@@ -71,6 +74,28 @@ const selectSeat = async (page: Page) => {
   if (seatLabelHandle) {
     const seatLabelElement = seatLabelHandle.asElement();
     if (seatLabelElement) await seatLabelElement.click();
+  }
+};
+
+const selectSeatLeftZone = async (page: Page) => {
+  const seatHandle = await page.evaluateHandle(() => {
+    const row = [...document.querySelectorAll("tr")].filter((el) =>
+      el.querySelector("input[name='seat[]']")
+    );
+    const seatInRow = [...row[1].querySelectorAll("td")].filter((el) =>
+      el.querySelector("input[name='seat[]']")
+    );
+    const seatInput = seatInRow[seatInRow.length - 1].querySelector(
+      "input[name='seat[]']"
+    );
+    if (seatInput) {
+      return seatInput.nextElementSibling;
+    }
+  });
+
+  if (seatHandle) {
+    const seatElement = seatHandle.asElement();
+    if (seatElement) await seatElement.click();
   }
 };
 
@@ -86,7 +111,7 @@ const clickOnBookingButton = async (page: Page) => {
 
 const handleDuplicateBooking = async (page: Page) => {
   while (true) {
-    const orderDetail = await page.getByText("รายละเอียดการสั่งซื้อ (Order");
+    const orderDetail = await page.getByText(/(Order details)/i);
     try {
       if (await orderDetail.isVisible()) {
         break;
