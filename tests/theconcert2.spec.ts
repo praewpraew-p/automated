@@ -1,4 +1,5 @@
 import { test, expect, Page, Locator } from "@playwright/test";
+import { getCurrentTime } from "./helper/helper";
 
 const url1 = "https://www.theconcert.com/concert/3689";
 const url2 = "https://www.theconcert.com/concert/3902";
@@ -66,18 +67,13 @@ async function clickingBuyButton(
 
   if (isSetBookingTime) {
     while (true) {
-      const now = new Date();
-      const currentTime = `${now.getHours().toString().padStart(2, "0")}:${now
-        .getMinutes()
-        .toString()
-        .padStart(2, "0")}:${now.getSeconds().toString().padStart(2, "0")}`;
+      const currentTime = getCurrentTime();
 
       if (currentTime === time) {
         await page
           .getByRole("button", { name: "ซื้อบัตร" })
           .nth(1)
           .click({ force: true });
-        // await page.getByText(`฿${ticketPrice}`).first().click();
         break;
       }
 
@@ -88,7 +84,6 @@ async function clickingBuyButton(
       .getByRole("button", { name: "ซื้อบัตร" })
       .nth(1)
       .click({ force: true });
-    // await page.getByText(`฿${ticketPrice}`).first().click();
   }
 }
 

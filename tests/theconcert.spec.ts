@@ -1,4 +1,5 @@
 import { test, expect, Page, Locator } from "@playwright/test";
+import { getCurrentTime } from "./helper/helper";
 
 const url1 = "https://www.theconcert.com/concert/3689";
 const url2 = "https://www.theconcert.com/concert/3902";
@@ -66,18 +67,12 @@ async function clickingBuyButton(
 
   if (isSetBookingTime) {
     while (true) {
-      const now = new Date();
-      const currentTime = `${now.getHours().toString().padStart(2, "0")}:${now
-        .getMinutes()
-        .toString()
-        .padStart(2, "0")}:${now.getSeconds().toString().padStart(2, "0")}`;
-
+      const currentTime = getCurrentTime();
       if (currentTime === time) {
         await page
           .getByRole("button", { name: "ซื้อบัตร" })
           .nth(1)
           .click({ force: true });
-        // await page.getByText(`฿${ticketPrice}`).first().click();
         break;
       }
 
@@ -88,7 +83,6 @@ async function clickingBuyButton(
       .getByRole("button", { name: "ซื้อบัตร" })
       .nth(1)
       .click({ force: true });
-    // await page.getByText(`฿${ticketPrice}`).first().click();
   }
 }
 
@@ -133,15 +127,13 @@ async function selectSeat(page: Page, seatSelectedElement: Locator) {
     }
 
     // for (let i = count - 1; i >= 0; i--) clicking from back to front
-    for (let i = count - 1; i >= 0; i--) {
+    for (let i = 0; i < count; i++) {
       const element = page.locator(
         `text[style*='cursor: pointer'] > tspan[dy*='.'] >> nth=${i}`
       );
 
       const elementHandle = await element.elementHandle();
       if (elementHandle) {
-        const textContent = await element.textContent();
-
         try {
           await element.click();
 
@@ -161,7 +153,7 @@ async function selectSeat(page: Page, seatSelectedElement: Locator) {
 
           break;
         } catch (error) {
-          console.error(`Error clicking on element: ${textContent}`, error);
+          console.error(`Error clicking on element`, error);
         }
       } else {
         console.log(`Element at index ${i} is no longer attached.`);
