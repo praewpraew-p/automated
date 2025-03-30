@@ -8,7 +8,7 @@ const zone = "SF-1 :";
 const ticketAmount = "4";
 const ticketPrice_prebook = "6,500";
 const ticketPrice = "2,019";
-const isSetBookingTime = false;
+const isSetBookingTime = true;
 const bookingtTime = "09:59:59";
 
 test("booking ticket", async ({ page }) => {
@@ -16,7 +16,6 @@ test("booking ticket", async ({ page }) => {
   await clickingBuyButton(page, false, bookingtTime, ticketPrice_prebook);
   await selectZoneAndSeat(page, zone_prebook, ticketAmount);
   await page.waitForTimeout(3000);
-  // await page.pause();
 
   await page.goto(url2);
   await clickingBuyButton(page, isSetBookingTime, bookingtTime, ticketPrice);
@@ -93,6 +92,7 @@ async function selectZoneAndSeat(
   ticketAmount: string
 ) {
   const regex = new RegExp(`${zone}`, "i");
+  await page.waitForTimeout(2000);
   await page.locator("span.zone-name", { hasText: regex }).first().click();
 
   const seatSelectedElement = await page.getByText(
@@ -112,7 +112,7 @@ async function selectZoneAndSeat(
   }
 
   await expect(warningModal).not.toBeVisible();
-  await page.getByRole("button", { name: "ซื้อบัตร" }).click();
+  await page.getByRole("button", { name: "ชำระเงิน" });
 }
 
 async function selectSeat(page: Page, seatSelectedElement: Locator) {
@@ -138,11 +138,20 @@ async function selectSeat(page: Page, seatSelectedElement: Locator) {
         try {
           await element.click();
 
-          const warningModal = await page.getByRole("heading", {
+          const duplicateSeatModal = await page.getByRole("heading", {
             name: "ที่นั่งนี้ถูกจองไปแล้ว",
           });
-          if (await warningModal.isVisible()) {
+          if (await duplicateSeatModal.isVisible()) {
             await page.getByRole("button", { name: "OK" }).locator("i").click();
+          }
+          const warningModal = await page.locator(".box-warning");
+          if (await warningModal.isVisible()) {
+            await page
+              .getByRole("dialog", {
+                name: "ยินดีด้วย คุณได้ลงทะเบียนเรียบร้อยแล้ว complete",
+              })
+              .locator("i")
+              .click();
           }
 
           if (await seatSelectedElement.isVisible()) {
