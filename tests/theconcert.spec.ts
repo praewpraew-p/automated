@@ -1,21 +1,22 @@
 import { test, expect, Page, Locator } from "@playwright/test";
 import { getCurrentTime } from "./helper/helper";
 
-const url1 = "https://www.theconcert.com/concert/3689";
-const url2 = "https://www.theconcert.com/concert/3902";
-const zone_prebook = "V2";
-const zone = "A2 :";
+const url1 = "https://www.theconcert.com/concert/4051";
+const url2 = "https://www.theconcert.com/concert/4035";
+const zone_prebook = "A2";
+const zone = "SF-1 :";
 const ticketAmount = "4";
-const ticketPrice_prebook = "3,620";
-const ticketPrice = "3,019";
-const isSetBookingTime = true;
-const bookingtTime = "09:59:57";
+const ticketPrice_prebook = "6,500";
+const ticketPrice = "2,019";
+const isSetBookingTime = false;
+const bookingtTime = "09:59:59";
 
 test("booking ticket", async ({ page }) => {
   await signin(page, url1);
   await clickingBuyButton(page, false, bookingtTime, ticketPrice_prebook);
   await selectZoneAndSeat(page, zone_prebook, ticketAmount);
   await page.waitForTimeout(3000);
+  // await page.pause();
 
   await page.goto(url2);
   await clickingBuyButton(page, isSetBookingTime, bookingtTime, ticketPrice);
@@ -137,14 +138,11 @@ async function selectSeat(page: Page, seatSelectedElement: Locator) {
         try {
           await element.click();
 
-          const warningModal = await page.locator(".box-warning");
+          const warningModal = await page.getByRole("heading", {
+            name: "ที่นั่งนี้ถูกจองไปแล้ว",
+          });
           if (await warningModal.isVisible()) {
-            await page
-              .getByRole("dialog", {
-                name: "ยินดีด้วย คุณได้ลงทะเบียนเรียบร้อยแล้ว complete",
-              })
-              .locator("i")
-              .click();
+            await page.getByRole("button", { name: "OK" }).locator("i").click();
           }
 
           if (await seatSelectedElement.isVisible()) {
