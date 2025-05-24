@@ -1,11 +1,12 @@
 import test, { Page } from "@playwright/test";
 import { getCurrentTime } from "./helper/helper";
 
-const home_url = "https://www.feelfunfest.com/index_heartkillers.html";
+// ก่อนเวลากดต้องรีเฟรชหน้าจอด้วยสักพัก ไม่งั้นเข้าไปแล้วมันจะ lack
+const home_url = "https://www.feelfunfest.com/index_maxkybas.html";
 const login_url = "https://www.feelfunfest.com/myaccount.php";
 const seat_url =
-  "https://www.feelfunfest.com/TheHeartKillers_FanMeet_Vietnam/step.php";
-const zone = "CAT2R";
+  "https://www.feelfunfest.com/Maxkybas_HeartToHeart_in_Vietnam/step.php";
+const zone = "A2";
 const time = "";
 
 test("booking", async ({ page }) => {
